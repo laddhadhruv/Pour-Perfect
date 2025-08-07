@@ -17,8 +17,7 @@ export type RoastProfile =
 
 export interface BrewRecord {
   id: string;
-  dateISO: string; // brew date
-  roastDate: string; // roast date (mandatory)
+  dateISO: string;
   method: BrewMethod;
   beans: string; // required
   roaster?: string; // optional text
