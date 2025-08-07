@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { Droplets, Scale } from "lucide-react";
+import { Droplets, Scale, Calendar } from "lucide-react";
 import { Timer } from "./Timer";
 import { StarRating } from "./StarRating";
 import type { BrewMethod, BrewRecord, RoastProfile } from "@/types/brew";
@@ -38,6 +38,8 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
   const [rating, setRating] = useState<number | undefined>(undefined);
   const [seconds, setSeconds] = useState(0);
   const [bloomAtSec, setBloomAtSec] = useState<number | undefined>(undefined);
+  const [roastDate, setRoastDate] = useState("");
+  const [brewDate, setBrewDate] = useState(new Date().toISOString().split('T')[0]);
 
   const beanOptions = useMemo(() => Array.from(new Set(brews.map(b => b.beans).filter(Boolean))) as string[], [brews]);
   const roasterOptions = useMemo(() => Array.from(new Set(brews.map(b => b.roaster).filter(Boolean))) as string[], [brews]);
@@ -102,10 +104,15 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
       toast({ title: "Beans required", description: "Please enter the beans used." });
       return;
     }
+    if (!roastDate) {
+      toast({ title: "Roast date required", description: "Please select the roast date." });
+      return;
+    }
 
     const brew: BrewRecord = {
       id: `${Date.now()}`,
-      dateISO: new Date().toISOString(),
+      dateISO: new Date(brewDate).toISOString(),
+      roastDate,
       method,
       beans: beans.trim(),
       roaster: roaster.trim() || undefined,
@@ -152,7 +159,7 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="beans">Beans</Label>
+                <Label htmlFor="beans">Beans *</Label>
                 <Input id="beans" required list="beans-list" placeholder="e.g. Ethiopia, Natural" value={beans} onChange={(e) => setBeans(e.target.value)} />
                 <datalist id="beans-list">
                   {beanOptions.map((opt) => (
@@ -168,6 +175,17 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
                     <option key={opt} value={opt} />
                   ))}
                 </datalist>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="roast-date" className="flex items-center gap-2"><Calendar className="size-4"/> Roast Date *</Label>
+                <Input id="roast-date" type="date" required value={roastDate} onChange={(e) => setRoastDate(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="brew-date" className="flex items-center gap-2"><Calendar className="size-4"/> Brew Date</Label>
+                <Input id="brew-date" type="date" value={brewDate} onChange={(e) => setBrewDate(e.target.value)} />
               </div>
             </div>
 
@@ -197,7 +215,7 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="grind">Grind (0-10)</Label>
+                <Label htmlFor="grind">Grind</Label>
                 <Input id="grind" type="number" inputMode="decimal" min={0} max={10} step={0.1} value={grind} onChange={(e) => setGrind(parseFloat(e.target.value) || 0)} />
               </div>
             </div>

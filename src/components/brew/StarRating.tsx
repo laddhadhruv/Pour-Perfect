@@ -11,7 +11,7 @@ interface StarRatingProps {
 export const StarRating = ({ value = 0, onChange, max = 5, step = 0.5 }: StarRatingProps) => {
   const handleClick = (index: number, isHalf: boolean) => {
     const newVal = isHalf ? index + 0.5 : index + 1;
-    onChange(newVal === value ? 0 : newVal);
+    onChange(newVal === value ? undefined : newVal);
   };
 
   const items = Array.from({ length: max }, (_, i) => {
@@ -23,31 +23,25 @@ export const StarRating = ({ value = 0, onChange, max = 5, step = 0.5 }: StarRat
         {/* Left half */}
         <button
           type="button"
-          className={cn("absolute left-0 top-0 h-full w-1/2 text-accent", step === 0.5 ? "block" : "hidden")}
+          className="absolute left-0 top-0 h-full w-1/2 z-10 text-accent"
           onClick={() => handleClick(i, true)}
           aria-label={`Rate ${i + 0.5} stars`}
         >
-          {half ? <StarHalf className="h-8 w-8 fill-current" /> : full ? (
-            <Star className="h-8 w-8 fill-current" />
-          ) : (
-            <Star className="h-8 w-8 opacity-40" />
-          )}
+          <div className="overflow-hidden w-full h-full">
+            <Star className={cn("h-8 w-8", half ? "fill-current" : full ? "fill-current" : "opacity-40")} />
+          </div>
         </button>
         {/* Right half / full */}
         <button
           type="button"
-          className="absolute right-0 top-0 h-full w-full text-accent"
+          className="absolute right-0 top-0 h-full w-1/2 text-accent"
           onClick={() => handleClick(i, false)}
           aria-label={`Rate ${i + 1} stars`}
         >
-          {full ? (
-            <Star className="h-8 w-8 fill-current" />
-          ) : half ? (
-            <StarHalf className="h-8 w-8 fill-current" />
-          ) : (
-            <Star className="h-8 w-8 opacity-40" />
-          )}
+          <Star className={cn("h-8 w-8", full ? "fill-current" : "opacity-40")} />
         </button>
+        {/* Background star */}
+        <Star className="h-8 w-8 opacity-20 absolute inset-0" />
       </div>
     );
   });
