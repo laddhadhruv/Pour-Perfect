@@ -50,32 +50,38 @@ export const Timer = ({ seconds, onChange, onStop, bloomAtSec, onBloomChange }: 
   };
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-wrap items-center gap-2">
       <div className="inline-flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-lg font-mono">
         <TimerIcon className="opacity-70" />
         <span aria-live="polite">{format(seconds)}</span>
       </div>
       {running ? (
-        <Button variant="secondary" onClick={() => setRunning(false)} aria-label="Pause timer">
-          <Pause /> Pause
+        <Button size="sm" variant="secondary" onClick={() => setRunning(false)} aria-label="Pause timer">
+          <Pause className="size-4" /> Pause
         </Button>
       ) : (
-        <Button variant="hero" onClick={() => setRunning(true)} aria-label="Start timer">
-          <Play /> Start
+        <Button size="sm" variant="hero" onClick={() => setRunning(true)} aria-label="Start timer">
+          <Play className="size-4" /> Start
         </Button>
       )}
       <Button
+        size="sm"
         variant={bloomAtSec != null ? "secondary" : "outline"}
+        disabled={!running}
         onClick={() => {
-          if (bloomAtSec == null) onBloomChange(Math.round(seconds));
-          else onBloomChange(undefined);
+          if (running && bloomAtSec == null) {
+            onBloomChange(Math.round(seconds));
+          } else if (bloomAtSec != null) {
+            onBloomChange(undefined);
+          }
         }}
         aria-pressed={bloomAtSec != null}
         aria-label={bloomAtSec != null ? `Bloom flagged at ${bloomAtSec}s` : "Flag bloom time"}
       >
-        <Star /> Bloom
+        <Star className="size-4" /> Bloom
       </Button>
       <Button
+        size="sm"
         variant="outline"
         onClick={() => {
           setRunning(false);
@@ -83,9 +89,10 @@ export const Timer = ({ seconds, onChange, onStop, bloomAtSec, onBloomChange }: 
         }}
         aria-label="Stop and save brew"
       >
-        <Square /> Stop
+        <Square className="size-4" /> Stop
       </Button>
       <Button
+        size="sm"
         variant="outline"
         onClick={() => {
           setRunning(false);
@@ -94,7 +101,7 @@ export const Timer = ({ seconds, onChange, onStop, bloomAtSec, onBloomChange }: 
         }}
         aria-label="Reset timer"
       >
-        <RefreshCw /> Reset
+        <RefreshCw className="size-4" /> Reset
       </Button>
     </div>
   );

@@ -1,6 +1,7 @@
 import heroImage from "@/assets/coffee-hero.jpg";
 import { BrewForm } from "@/components/brew/BrewForm";
 import { BrewHistory } from "@/components/brew/BrewHistory";
+import { ExportImport } from "@/components/brew/ExportImport";
 import { Button } from "@/components/ui/button";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import type { BrewRecord } from "@/types/brew";
@@ -15,6 +16,10 @@ const Index = () => {
 
   const deleteBrew = (id: string) => {
     setBrews(brews.filter((b) => b.id !== id));
+  };
+
+  const handleImport = (importedBrews: BrewRecord[]) => {
+    setBrews([...importedBrews, ...brews]);
   };
 
   return (
@@ -56,7 +61,11 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-10">
         <section id="log" className="scroll-mt-24">
-          <BrewForm onAdd={addBrew} />
+          <BrewForm onAdd={addBrew} brews={brews} />
+        </section>
+
+        <section className="mt-10">
+          <ExportImport brews={brews} onImport={handleImport} />
         </section>
 
         <section id="history" className="mt-10 scroll-mt-24">
