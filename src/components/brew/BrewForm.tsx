@@ -2,36 +2,45 @@ import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { Coffee, Thermometer, Droplets, Scale } from "lucide-react";
+import { Droplets, Scale } from "lucide-react";
 import { Timer } from "./Timer";
-import type { BrewMethod, BrewRecord } from "@/types/brew";
+import { StarRating } from "./StarRating";
+import type { BrewMethod, BrewRecord, RoastProfile } from "@/types/brew";
 
 const METHODS: BrewMethod[] = [
   "Pour Over",
   "Espresso",
-  "French Press",
-  "AeroPress",
+  "Iced Americano",
+  "Americano",
+  "Cortado",
+  "Cappuccino",
   "Cold Brew",
+  "French Press",
 ];
 
 interface BrewFormProps {
   onAdd: (brew: BrewRecord) => void;
+  brews?: BrewRecord[]; // for suggestions
 }
 
-export const BrewForm = ({ onAdd }: BrewFormProps) => {
+export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
   const [method, setMethod] = useState<BrewMethod>("Pour Over");
   const [beans, setBeans] = useState("");
+  const [roaster, setRoaster] = useState("");
   const [dose, setDose] = useState<number>(18);
   const [water, setWater] = useState<number>(300);
-  const [temperature, setTemperature] = useState<number>(96);
-  const [grind, setGrind] = useState<string>("Medium");
+  const [roastProfile, setRoastProfile] = useState<RoastProfile | undefined>("Medium");
+  const [grind, setGrind] = useState<number>(5.0);
   const [notes, setNotes] = useState("");
   const [rating, setRating] = useState<number | undefined>(undefined);
   const [seconds, setSeconds] = useState(0);
+  const [bloomAtSec, setBloomAtSec] = useState<number | undefined>(undefined);
+
+  const beanOptions = useMemo(() => Array.from(new Set(brews.map(b => b.beans).filter(Boolean))) as string[], [brews]);
+  const roasterOptions = useMemo(() => Array.from(new Set(brews.map(b => b.roaster).filter(Boolean))) as string[], [brews]);
 
   const ratio = useMemo(() => {
     if (!dose || !water) return "1:–";
@@ -45,58 +54,76 @@ export const BrewForm = ({ onAdd }: BrewFormProps) => {
       case "Espresso":
         setDose(18);
         setWater(36);
-        setTemperature(93);
-        setGrind("Fine");
+        setGrind(2.0);
         break;
       case "French Press":
         setDose(30);
         setWater(500);
-        setTemperature(96);
-        setGrind("Coarse");
-        break;
-      case "AeroPress":
-        setDose(15);
-        setWater(220);
-        setTemperature(93);
-        setGrind("Medium-Fine");
+        setGrind(8.0);
         break;
       case "Cold Brew":
         setDose(100);
         setWater(1000);
-        setTemperature(20);
-        setGrind("Coarse");
+        setGrind(9.0);
+        break;
+      case "Americano":
+        setDose(18);
+        setWater(200);
+        setGrind(2.0);
+        break;
+      case "Iced Americano":
+        setDose(18);
+        setWater(220);
+        setGrind(2.0);
+        break;
+      case "Cortado":
+        setDose(16);
+        setWater(32);
+        setGrind(2.0);
+        break;
+      case "Cappuccino":
+        setDose(18);
+        setWater(36);
+        setGrind(2.0);
         break;
       default:
         setDose(18);
         setWater(300);
-        setTemperature(96);
-        setGrind("Medium");
+        setGrind(5.0);
     }
   };
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleStop = () => {
     if (!dose || !water) {
       toast({ title: "Missing values", description: "Please fill dose and water." });
       return;
     }
+    if (!beans.trim()) {
+      toast({ title: "Beans required", description: "Please enter the beans used." });
+      return;
+    }
+
     const brew: BrewRecord = {
       id: `${Date.now()}`,
       dateISO: new Date().toISOString(),
       method,
-      beans: beans.trim() || undefined,
+      beans: beans.trim(),
+      roaster: roaster.trim() || undefined,
       dose,
       water,
       ratio,
-      temperature,
-      grind: grind.trim() || undefined,
+      roastProfile,
+      grind: Number(grind.toFixed(1)),
       timeSec: Math.round(seconds),
+      bloomAtSec,
       notes: notes.trim() || undefined,
       rating,
     };
+
     onAdd(brew);
     toast({ title: "Brew saved", description: `${method} • ${ratio}` });
     setSeconds(0);
+    setBloomAtSec(undefined);
   };
 
   return (
@@ -105,7 +132,7 @@ export const BrewForm = ({ onAdd }: BrewFormProps) => {
         <CardTitle className="text-xl">Log a Brew</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={submit} className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <form className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="method">Method</Label>
@@ -123,9 +150,25 @@ export const BrewForm = ({ onAdd }: BrewFormProps) => {
               </Select>
             </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="beans">Beans (optional)</Label>
-              <Input id="beans" placeholder="e.g. Ethiopia, Natural" value={beans} onChange={(e) => setBeans(e.target.value)} />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="beans">Beans</Label>
+                <Input id="beans" required list="beans-list" placeholder="e.g. Ethiopia, Natural" value={beans} onChange={(e) => setBeans(e.target.value)} />
+                <datalist id="beans-list">
+                  {beanOptions.map((opt) => (
+                    <option key={opt} value={opt} />
+                  ))}
+                </datalist>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="roaster">Roaster</Label>
+                <Input id="roaster" list="roaster-list" placeholder="e.g. Local Roasters" value={roaster} onChange={(e) => setRoaster(e.target.value)} />
+                <datalist id="roaster-list">
+                  {roasterOptions.map((opt) => (
+                    <option key={opt} value={opt} />
+                  ))}
+                </datalist>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -141,12 +184,21 @@ export const BrewForm = ({ onAdd }: BrewFormProps) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="temp" className="flex items-center gap-2"><Thermometer className="size-4"/> Temp (°C)</Label>
-                <Input id="temp" type="number" min={0} max={100} step={1} value={temperature} onChange={(e) => setTemperature(parseFloat(e.target.value) || 0)} />
+                <Label htmlFor="roast">Roast Profile</Label>
+                <Select value={roastProfile} onValueChange={(v) => setRoastProfile(v as RoastProfile)}>
+                  <SelectTrigger id="roast">
+                    <SelectValue placeholder="Select roast" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(["Extremely Light","Light","Medium","Medium-Dark","Dark"] as RoastProfile[]).map((r) => (
+                      <SelectItem key={r} value={r}>{r}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="grind" className="flex items-center gap-2"><Coffee className="size-4"/> Grind</Label>
-                <Input id="grind" placeholder="e.g. Medium" value={grind} onChange={(e) => setGrind(e.target.value)} />
+                <Label htmlFor="grind">Grind (0-10)</Label>
+                <Input id="grind" type="number" inputMode="decimal" min={0} max={10} step={0.1} value={grind} onChange={(e) => setGrind(parseFloat(e.target.value) || 0)} />
               </div>
             </div>
 
@@ -159,7 +211,7 @@ export const BrewForm = ({ onAdd }: BrewFormProps) => {
           <div className="space-y-4">
             <div className="grid gap-2">
               <Label>Timer</Label>
-              <Timer seconds={seconds} onChange={setSeconds} />
+              <Timer seconds={seconds} onChange={setSeconds} onStop={handleStop} bloomAtSec={bloomAtSec} onBloomChange={setBloomAtSec} />
             </div>
 
             <div className="grid gap-2">
@@ -168,13 +220,10 @@ export const BrewForm = ({ onAdd }: BrewFormProps) => {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="rating">Rating (1-5)</Label>
-              <Input id="rating" type="number" min={1} max={5} step={1} value={rating ?? ""} onChange={(e) => setRating(e.target.value ? Math.max(1, Math.min(5, parseInt(e.target.value))) : undefined)} />
+              <Label htmlFor="rating">Rating</Label>
+              <StarRating value={rating} onChange={setRating} />
             </div>
 
-            <div className="pt-2">
-              <Button type="submit" variant="hero" className="w-full">Save Brew</Button>
-            </div>
           </div>
         </form>
       </CardContent>

@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Pause, Play, RefreshCw, Timer as TimerIcon } from "lucide-react";
+import { Pause, Play, RefreshCw, Timer as TimerIcon, Square, Star } from "lucide-react";
 
 interface TimerProps {
   seconds: number;
   onChange: (s: number) => void;
+  onStop: () => void;
+  bloomAtSec?: number;
+  onBloomChange: (s?: number) => void;
 }
 
-export const Timer = ({ seconds, onChange }: TimerProps) => {
+export const Timer = ({ seconds, onChange, onStop, bloomAtSec, onBloomChange }: TimerProps) => {
   const [running, setRunning] = useState(false);
   const raf = useRef<number | null>(null);
   const lastTick = useRef<number | null>(null);
@@ -62,10 +65,32 @@ export const Timer = ({ seconds, onChange }: TimerProps) => {
         </Button>
       )}
       <Button
+        variant={bloomAtSec != null ? "secondary" : "outline"}
+        onClick={() => {
+          if (bloomAtSec == null) onBloomChange(Math.round(seconds));
+          else onBloomChange(undefined);
+        }}
+        aria-pressed={bloomAtSec != null}
+        aria-label={bloomAtSec != null ? `Bloom flagged at ${bloomAtSec}s` : "Flag bloom time"}
+      >
+        <Star /> Bloom
+      </Button>
+      <Button
+        variant="outline"
+        onClick={() => {
+          setRunning(false);
+          onStop();
+        }}
+        aria-label="Stop and save brew"
+      >
+        <Square /> Stop
+      </Button>
+      <Button
         variant="outline"
         onClick={() => {
           setRunning(false);
           onChange(0);
+          onBloomChange(undefined);
         }}
         aria-label="Reset timer"
       >

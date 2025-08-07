@@ -1,21 +1,33 @@
 export type BrewMethod =
   | "Pour Over"
   | "Espresso"
-  | "French Press"
-  | "AeroPress"
-  | "Cold Brew";
+  | "Iced Americano"
+  | "Americano"
+  | "Cortado"
+  | "Cappuccino"
+  | "Cold Brew"
+  | "French Press";
+
+export type RoastProfile =
+  | "Extremely Light"
+  | "Light"
+  | "Medium"
+  | "Medium-Dark"
+  | "Dark";
 
 export interface BrewRecord {
   id: string;
   dateISO: string;
   method: BrewMethod;
-  beans?: string;
+  beans: string; // required
+  roaster?: string; // optional text
   dose: number; // grams
   water: number; // grams
   ratio: string; // e.g. 1:15
-  temperature?: number; // C
-  grind?: string;
+  roastProfile?: RoastProfile; // replaces temperature
+  grind: number; // numeric with one decimal place
   timeSec: number; // seconds
+  bloomAtSec?: number; // optional bloom flag time
   notes?: string;
-  rating?: number; // 1-5
+  rating?: number; // 0.5 increments, 0-5
 }
