@@ -243,7 +243,7 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
 
             <div className="grid gap-2">
               <Label htmlFor="rating">Rating</Label>
-              <StarRating value={rating} onChange={setRating} />
+              <StarRating value={rating} onChange={setRating} max={7} step={1} />
             </div>
 
           </div>

@@ -29,7 +29,7 @@ export const StarRating = ({ value = 0, onChange, max = 5, step = 0.5 }: StarRat
   const handleLeave = () => setHover(undefined);
 
   const handleClick = () => {
-    onChange(display === value ? undefined : display);
+    onChange(display);
   };
 
   const Stars = ({ filled }: { filled?: boolean }) => (
@@ -49,6 +49,7 @@ export const StarRating = ({ value = 0, onChange, max = 5, step = 0.5 }: StarRat
         onMouseMove={handleMove}
         onMouseLeave={handleLeave}
         onClick={handleClick}
+        onDoubleClick={() => onChange(undefined)}
         role="slider"
         aria-label="Star rating"
         aria-valuemin={0}
@@ -58,6 +59,7 @@ export const StarRating = ({ value = 0, onChange, max = 5, step = 0.5 }: StarRat
         onKeyDown={(e) => {
           if (e.key === "ArrowLeft") onChange(Math.max(0, (value ?? 0) - step));
           if (e.key === "ArrowRight") onChange(Math.min(max, (value ?? 0) + step));
+          if (e.key === "Escape") onChange(undefined);
         }}
       >
         {/* Base (outline) layer */}

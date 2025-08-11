@@ -30,5 +30,5 @@ export interface BrewRecord {
   timeSec: number; // seconds
   bloomAtSec?: number; // optional bloom flag time
   notes?: string;
-  rating?: number; // 0.5 increments, 0-5
+  rating?: number; // 1-7 scale (integer). Double-click to clear
 }
