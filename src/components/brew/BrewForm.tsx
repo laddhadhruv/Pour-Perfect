@@ -31,7 +31,7 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
   const [beans, setBeans] = useState("");
   const [roaster, setRoaster] = useState("");
   const [dose, setDose] = useState<number>(18);
-  const [water, setWater] = useState<number>(300);
+  const [water, setWater] = useState<number | undefined>(undefined);
   const [roastProfile, setRoastProfile] = useState<RoastProfile | undefined>("Medium");
   const [grind, setGrind] = useState<number>(5.0);
   const [notes, setNotes] = useState("");
@@ -192,11 +192,11 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="dose" className="flex items-center gap-2"><Scale className="size-4"/> Dose (g)</Label>
-                <Input id="dose" type="number" min={0} step={0.1} value={dose} onChange={(e) => setDose(parseFloat(e.target.value) || 0)} />
+                <Input id="dose" type="number" required min={0} step={0.1} value={dose} onChange={(e) => setDose(parseFloat(e.target.value) || 0)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="water" className="flex items-center gap-2"><Droplets className="size-4"/> Water (g)</Label>
-                <Input id="water" type="number" min={0} step={1} value={water} onChange={(e) => setWater(parseFloat(e.target.value) || 0)} />
+                <Input id="water" type="number" required min={0} step={1} placeholder="e.g. 300" value={water ?? ""} onChange={(e) => { const v = parseFloat(e.target.value); setWater(Number.isFinite(v) ? v : undefined); }} />
               </div>
             </div>
 
@@ -216,7 +216,7 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="grind">Grind</Label>
-                <Input id="grind" type="number" inputMode="decimal" min={0} max={10} step={0.1} value={grind} onChange={(e) => setGrind(parseFloat(e.target.value) || 0)} />
+                <Input id="grind" type="number" inputMode="decimal" required step={0.1} value={grind} onChange={(e) => setGrind(parseFloat(e.target.value) || 0)} />
               </div>
             </div>
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Pause, Play, RefreshCw, Timer as TimerIcon, Square, Star } from "lucide-react";
+import { RefreshCw, Timer as TimerIcon, Square, Star } from "lucide-react";
 
 interface TimerProps {
   seconds: number;
@@ -51,10 +51,24 @@ export const Timer = ({ seconds, onChange, onStop, bloomAtSec, onBloomChange }: 
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <div className="inline-flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-lg font-mono">
+      <div
+        className="inline-flex items-center gap-2 rounded-md border bg-card px-3 py-2 text-lg font-mono select-none cursor-pointer"
+        role="button"
+        tabIndex={0}
+        onClick={() => setRunning(true)}
+        onDoubleClick={() => setRunning(false)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setRunning((r) => !r);
+          }
+        }}
+        aria-pressed={running}
+        title="Click to start • Double-click to pause"
+      >
         <TimerIcon className="opacity-70" />
         <span aria-live="polite">{format(seconds)}</span>
-      </div>
+      </div
       {running ? (
         <Button size="sm" variant="secondary" onClick={() => setRunning(false)} aria-label="Pause timer">
           <Pause className="size-4" /> Pause
@@ -67,12 +81,10 @@ export const Timer = ({ seconds, onChange, onStop, bloomAtSec, onBloomChange }: 
       <Button
         size="sm"
         variant={bloomAtSec != null ? "secondary" : "outline"}
-        disabled={!running}
+        disabled={!running || bloomAtSec != null}
         onClick={() => {
           if (running && bloomAtSec == null) {
             onBloomChange(Math.round(seconds));
-          } else if (bloomAtSec != null) {
-            onBloomChange(undefined);
           }
         }}
         aria-pressed={bloomAtSec != null}

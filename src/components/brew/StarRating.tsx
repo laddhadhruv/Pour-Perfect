@@ -1,4 +1,5 @@
-import { Star, StarHalf } from "lucide-react";
+import { useRef, useState } from "react";
+import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StarRatingProps {
@@ -9,42 +10,63 @@ interface StarRatingProps {
 }
 
 export const StarRating = ({ value = 0, onChange, max = 5, step = 0.5 }: StarRatingProps) => {
-  const handleClick = (index: number, isHalf: boolean) => {
-    const newVal = isHalf ? index + 0.5 : index + 1;
-    onChange(newVal === value ? undefined : newVal);
+  const [hover, setHover] = useState<number | undefined>(undefined);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const display = hover ?? value ?? 0;
+  const percent = `${Math.max(0, Math.min(1, display / max)) * 100}%`;
+
+  const handleMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const x = e.clientX - rect.left;
+    const ratio = Math.max(0, Math.min(1, x / rect.width));
+    const raw = ratio * max;
+    const rounded = Math.max(step, Math.min(max, Math.round(raw / step) * step));
+    setHover(rounded);
   };
 
-  const items = Array.from({ length: max }, (_, i) => {
-    const diff = (value ?? 0) - i;
-    const full = diff >= 1;
-    const half = !full && diff >= 0.5;
-    return (
-      <div key={i} className="relative h-8 w-8">
-        {/* Left half */}
-        <button
-          type="button"
-          className="absolute left-0 top-0 h-full w-1/2 z-10 text-accent"
-          onClick={() => handleClick(i, true)}
-          aria-label={`Rate ${i + 0.5} stars`}
-        >
-          <div className="overflow-hidden w-full h-full">
-            <Star className={cn("h-8 w-8", half ? "fill-current" : full ? "fill-current" : "opacity-40")} />
-          </div>
-        </button>
-        {/* Right half / full */}
-        <button
-          type="button"
-          className="absolute right-0 top-0 h-full w-1/2 text-accent"
-          onClick={() => handleClick(i, false)}
-          aria-label={`Rate ${i + 1} stars`}
-        >
-          <Star className={cn("h-8 w-8", full ? "fill-current" : "opacity-40")} />
-        </button>
-        {/* Background star */}
-        <Star className="h-8 w-8 opacity-20 absolute inset-0" />
-      </div>
-    );
-  });
+  const handleLeave = () => setHover(undefined);
 
-  return <div className="flex items-center gap-1">{items}</div>;
+  const handleClick = () => {
+    onChange(display === value ? undefined : display);
+  };
+
+  const Stars = ({ filled }: { filled?: boolean }) => (
+    <div className={cn("flex items-center gap-1", filled ? "text-accent" : "text-muted-foreground/40")}
+    >
+      {Array.from({ length: max }, (_, i) => (
+        <Star key={i} className={cn("h-8 w-8", filled && "fill-current")} />
+      ))}
+    </div>
+  );
+
+  return (
+    <div className="inline-flex items-center">
+      <div
+        ref={containerRef}
+        className="relative select-none"
+        onMouseMove={handleMove}
+        onMouseLeave={handleLeave}
+        onClick={handleClick}
+        role="slider"
+        aria-label="Star rating"
+        aria-valuemin={0}
+        aria-valuemax={max}
+        aria-valuenow={display}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowLeft") onChange(Math.max(0, (value ?? 0) - step));
+          if (e.key === "ArrowRight") onChange(Math.min(max, (value ?? 0) + step));
+        }}
+      >
+        {/* Base (outline) layer */}
+        <Stars />
+        {/* Filled overlay clipped by width */}
+        <div className="absolute inset-0 overflow-hidden" style={{ width: percent }}>
+          <Stars filled />
+        </div>
+      </div>
+    </div>
+  );
 };
