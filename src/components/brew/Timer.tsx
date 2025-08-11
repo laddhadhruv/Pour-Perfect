@@ -68,16 +68,7 @@ export const Timer = ({ seconds, onChange, onStop, bloomAtSec, onBloomChange }: 
       >
         <TimerIcon className="opacity-70" />
         <span aria-live="polite">{format(seconds)}</span>
-      </div
-      {running ? (
-        <Button size="sm" variant="secondary" onClick={() => setRunning(false)} aria-label="Pause timer">
-          <Pause className="size-4" /> Pause
-        </Button>
-      ) : (
-        <Button size="sm" variant="hero" onClick={() => setRunning(true)} aria-label="Start timer">
-          <Play className="size-4" /> Start
-        </Button>
-      )}
+      </div>
       <Button
         size="sm"
         variant={bloomAtSec != null ? "secondary" : "outline"}

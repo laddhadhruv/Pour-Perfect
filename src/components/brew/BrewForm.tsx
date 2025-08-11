@@ -96,8 +96,12 @@ export const BrewForm = ({ onAdd, brews = [] }: BrewFormProps) => {
   };
 
   const handleStop = () => {
-    if (!dose || !water) {
-      toast({ title: "Missing values", description: "Please fill dose and water." });
+    if (!dose) {
+      toast({ title: "Missing values", description: "Please fill dose." });
+      return;
+    }
+    if (water == null) {
+      toast({ title: "Missing values", description: "Please fill water." });
       return;
     }
     if (!beans.trim()) {
